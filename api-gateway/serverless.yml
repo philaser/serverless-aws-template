@@ -1,0 +1,64 @@
+# Welcome to Serverless!
+#
+# This is the base-template for my serverless projects.
+# This includes api-gateway service, user service and resource farm
+#
+#
+# Happy Coding!
+
+service: api-gateway
+# app and org for use with dashboard.serverless.com
+app: base-template
+org: philemonjo
+
+provider:
+  name: aws
+  runtime: python3.8
+  versionFunctions: false
+  stage: ${opt:stage, 'dev'}
+  region: us-east-1
+  tracing:
+    apiGateway: true
+  tags:
+    project: base-template
+    service: api-gateway
+    environment: ${self:provider.stage, 'dev'}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - xray:PutTraceSegments
+            - xray:PutTelemetryRecords
+          Resource: "*"
+
+custom:
+  pythonRequirements:
+    pythonBin: python3
+
+package:
+  patterns:
+    - '!node_modules/**'
+    - '!venv/**'
+
+resources:
+  Resources:
+    RestApiGateway:
+      Type: 'AWS::ApiGateway::RestApi'
+      Properties:
+        Name: ${self:provider.stage}-RestApiGateway
+
+
+  Outputs:
+    RestApiGatewayId:
+      Value:
+        Ref: RestApiGateway
+      Export:
+        Name: ${self:provider.stage}-RestApiGateway-Id
+    RestApiGatewayRootResourceId:
+      Value:
+        Fn::GetAtt:
+          - RestApiGateway
+          - RootResourceId
+      Export:
+        Name: ${self:provider.stage}-RestApiGateway-RootResourceId
